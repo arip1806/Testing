@@ -35,7 +35,7 @@ def initialize_pop(TARGET):
 
   for i in range(POP_SIZE):
       temp = list()
-      for j in range(tar_len):
+  for j in range(tar_len):
           temp.append(random.choice(GENES))
       population.append(temp)
 
@@ -127,9 +127,9 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
 
 
       if (population[0][1] == 0):
-        print('Target found')
-        print('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
+        st.write('Target found')
+         st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
         break
-      print('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
+       st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
       generation+=1
 result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
