@@ -36,7 +36,7 @@ def initialize_pop(TARGET):
   for i in range(POP_SIZE):
       temp = list()
   for j in range(tar_len):
-          temp.append(random.choice(GENES))
+      temp.append(random.choice(GENES))
       population.append(temp)
 
   return population
