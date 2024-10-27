@@ -5,24 +5,19 @@ st.set_page_config(
 st.header("Genetic Algorithm", divider="gray")
 
 import random
+
 #POP_SIZE: Number of Chromosomes in our list.
 POP_SIZE = 500
+
 #MUT_RATE: Rate at which our string will be changed.
 MUT_RATE = 0.2
+
 #TARGET: Our goal.
-TARGET = 'arif'
+TARGET = 'fakhitah'
+
 #GENES: Options from which our population would be created.
 GENES = ' abcdefghijklmnopqrstuvwxyz'
 
-import streamlit as st
-st.set_page_config(
-    page_title="Genetic Algorithm"
-)
-import streamlit as st
-st.set_page_config(
-    page_title="Genetic Algorithm"
-)
-st.header("Genetic Algorithm", divider="gray")
 #initialization
 
 def initialize_pop(TARGET):
@@ -31,11 +26,12 @@ def initialize_pop(TARGET):
 
   for i in range(POP_SIZE):
       temp = list()
-  for j in range(tar_len):
-      temp.append(random.choice(GENES))
+      for j in range(tar_len):
+          temp.append(random.choice(GENES))
       population.append(temp)
 
   return population
+
  #fitness calculation
 #0 fitness means target found
 
@@ -130,3 +126,6 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
       generation+=1
 
 result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
+ 
+
+    
