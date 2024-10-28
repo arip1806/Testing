@@ -3,7 +3,6 @@ st.set_page_config(
  page_title="Genetic Algorithm"
 )
 st.header("Genetic Algorithm", divider="gray")
-
 import random
 
 #POP_SIZE: Number of Chromosomes in our list.
@@ -17,7 +16,6 @@ TARGET = 'arif'
 
 #GENES: Options from which our population would be created.
 GENES = ' abcdefghijklmnopqrstuvwxyz'
-
 #initialization
 
 def initialize_pop(TARGET):
@@ -41,7 +39,7 @@ def fitness_cal(TARGET, chromo_from_pop):
       if tar_char != chromo_char:
           difference+=1
   return [chromo_from_pop, difference]
- #selection
+#selection
 #returns top 50% population sorted according to fitness
 
 def selection(population, TARGET):
@@ -119,13 +117,10 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
 
 
       if (population[0][1] == 0):
-        st.write('Target found')
-        st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
-        break
-        st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
-      generation+=1
-
-result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
- 
+       st.write('Target found')
+       st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
+      break
+       st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
+      generation+=1 
 
     
