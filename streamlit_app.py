@@ -16,6 +16,9 @@ mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", mi
 
 # Button to trigger the calculation
 calculate_button = st.button("Calculate")
+ if calculate_button:
+    TARGET = target_input.upper()
+    MUT_RATE = mutation_rate_input
 
 def initialize_pop(TARGET):
   population = list()
@@ -113,15 +116,10 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
       # we sort here first to compare the least fit population with the most fit new_gen
 
       population = replace(new_gen, population)
-
-
       if (population[0][1] == 0):
         st.write('Target found')
         st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
         break
         st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
       generation+=1
-     if calculate_button:
-    TARGET = target_input.upper()
-    MUT_RATE = mutation_rate_input
 result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
