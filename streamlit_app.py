@@ -81,13 +81,12 @@ st.header("Genetic Algorithm", divider="gray")
 
 target_input = st.text_input("Enter the target string:")
 mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
-crossover_rate_input = st.number_input("Enter the crossover rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
+
 
 calculate_button = st.button("Calculate")
 
 if calculate_button:
     target = target_input.upper()
     mutation_rate = mutation_rate_input
-    crossover_rate = crossover_rate_input
 
     genetic_algorithm(target, POP_SIZE, mutation_rate, crossover_rate)
