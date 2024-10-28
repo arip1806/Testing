@@ -76,7 +76,14 @@ def replace(new_gen, population):
  #main
 
 def main(POP_SIZE, MUT_RATE, TARGET, GENES):
-    # 1) initialize population
+# Button to trigger the calculation
+calculate_button = st.button("Calculate")
+
+if calculate_button:
+    TARGET = target_input.upper()
+    MUT_RATE = mutation_rate_input
+result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
+   # 1) initialize population
     initial_population = initialize_pop(TARGET)
     found = False
     population = []
@@ -116,11 +123,3 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
         break
         st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
       generation+=1
-# Button to trigger the calculation
-calculate_button = st.button("Calculate")
-
-if calculate_button:
-    TARGET = target_input.upper()
-    MUT_RATE = mutation_rate_input
-
-result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
