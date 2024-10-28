@@ -11,14 +11,11 @@ st.set_page_config(
 st.header("Genetic Algorithm", divider="gray")
 
 # User input fields
-target_input = st.text_input("Enter the target string:")
+target_input = st.text_input("Enter your name:")
 mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
 
 # Button to trigger the calculation
 calculate_button = st.button("Calculate")
- if calculate_button:
-    TARGET = target_input.upper()
-    MUT_RATE = mutation_rate_input
 
 def initialize_pop(TARGET):
   population = list()
