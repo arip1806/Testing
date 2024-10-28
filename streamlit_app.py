@@ -9,14 +9,6 @@ st.set_page_config(
     page_title="Genetic Algorithm"
 )
 st.header("Genetic Algorithm", divider="gray")
-
-# User input fields
-target_input = st.text_input("Enter your name:")
-mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
-
-# Button to trigger the calculation
-calculate_button = st.button("Calculate")
-
 def initialize_pop(TARGET):
   population = list()
   tar_len = len(TARGET)
@@ -111,10 +103,6 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
 
       # 3.4) replacement of bad population with new generation
       # we sort here first to compare the least fit population with the most fit new_gen
-     if calculate_button
-    TARGET = target_input.upper()
-    MUT_RATE = mutation_rate_input
-
       population = replace(new_gen, population)
       if (population[0][1] == 0):
         st.write('Target found')
@@ -122,4 +110,22 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
         break
         st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
       generation+=1
+     # Streamlit app
+st.set_page_config(
+    page_title="Genetic Algorithm"
+)
+st.header("Genetic Algorithm", divider="gray")
+
+# User input fields
+target_input = st.text_input("Enter the target string:")
+mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
+
+# Button to trigger the calculation
+calculate_button = st.button("Calculate")
+
+if calculate_button:
+    TARGET = target_input.upper()
+    MUT_RATE = mutation_rate_input
+
+    # Rest of the code, including the main function call
 result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
