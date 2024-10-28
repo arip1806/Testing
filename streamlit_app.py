@@ -111,7 +111,7 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
 
       # 3.4) replacement of bad population with new generation
       # we sort here first to compare the least fit population with the most fit new_gen
-     if calculate_button:
+     if (calculate_button):
     TARGET = target_input.upper()
     MUT_RATE = mutation_rate_input
 
