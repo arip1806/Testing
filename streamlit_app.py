@@ -117,7 +117,7 @@ mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", mi
 # Button to trigger the calculation
 calculate_button = st.button("Calculate")
 
-if calculate_button:
+     if calculate_button:
     TARGET = target_input.upper()
     MUT_RATE = mutation_rate_input
 
