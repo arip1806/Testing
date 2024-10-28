@@ -5,14 +5,19 @@ st.set_page_config(
 st.header("Genetic Algorithm", divider="gray")
 import random
 
-#POP_SIZE: Number of Chromosomes in our list.
-POP_SIZE = 500
+# User input fields
+target_input = st.text_input("Enter the target string:")
+mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
 
-#MUT_RATE: Rate at which our string will be changed.
-MUT_RATE = 0.2
+# Button to trigger the calculation
+calculate_button = st.button("Calculate")
 
-#TARGET: Our goal.
-TARGET = 'arif'
+if calculate_button:
+    TARGET = target_input.upper()
+    MUT_RATE = mutation_rate_input
+
+    # Rest of the code, including the main function call
+    result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
 
 #GENES: Options from which our population would be created.
 GENES = ' abcdefghijklmnopqrstuvwxyz'
@@ -126,13 +131,6 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
  # User input fields
 target_input = st.text_input("Enter your name:")
 mutation_rate_input = st.number_input("Enter your mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
-
-# Button to trigger the calculation
-calculate_button = st.button("Calculate")
-
-if calculate_button:
-    TARGET = target_input.upper()
-    MUT_RATE = mutation_rate_input
     # Rest of the code, including the main function call
     result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
 
