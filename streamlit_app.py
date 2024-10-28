@@ -124,8 +124,8 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
       generation+=1 
 
 # User input fields
-target_input = st.text_input("Enter the target string:")
-mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
+target_input = st.text_input("Enter your name:")
+mutation_rate_input = st.number_input("Enter your mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
 
 # Button to trigger the calculation
 calculate_button = st.button("Calculate")
