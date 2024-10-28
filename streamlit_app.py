@@ -73,13 +73,13 @@ def mutate(offspring, MUT_RATE):
               arr[i] = random.choice(GENES)
       mutated_offspring.append(arr)
   return mutated_offspring
- #replacement
+#replacement
 
 def replace(new_gen, population):
   for _ in range(len(population)):
-      if population[][1] > new_gen[][1]:
-        population[][0] = new_gen[][0]
-        population[][1] = new_gen[][1]
+      if population[_][1] > new_gen[_][1]:
+        population[_][0] = new_gen[_][0]
+        population[_][1] = new_gen[_][1]
   return population
  #main
 
