@@ -122,5 +122,18 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
        break
        st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
       generation+=1 
-result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
-    
+
+# User input fields
+target_input = st.text_input("Enter the target string:")
+mutation_rate_input = st.number_input("Enter the mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
+
+# Button to trigger the calculation
+calculate_button = st.button("Calculate")
+
+if calculate_button:
+    TARGET = target_input.upper()
+    MUT_RATE = mutation_rate_input
+
+    # Rest of the code, including the main function call
+    result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
+
