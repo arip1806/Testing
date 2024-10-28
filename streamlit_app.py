@@ -88,6 +88,18 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
     population = []
     generation = 1
 
+ # User input fields
+target_input = st.text_input("Enter your name:")
+mutation_rate_input = st.number_input("Enter your mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
+
+# Button to trigger the calculation
+calculate_button = st.button("Calculate")
+
+if calculate_button:
+    TARGET = target_input.upper()
+    MUT_RATE = mutation_rate_input
+
+
     # 2) Calculating the fitness for the current population
     for _ in range(len(initial_population)):
         population.append(fitness_cal(TARGET, initial_population[_]))
@@ -123,16 +135,6 @@ def main(POP_SIZE, MUT_RATE, TARGET, GENES):
        st.write('String: ' + str(population[0][0]) + ' Generation: ' + str(generation) + ' Fitness: ' + str(population[0][1]))
       generation+=1 
 
-# User input fields
-target_input = st.text_input("Enter your name:")
-mutation_rate_input = st.number_input("Enter your mutation rate (0.0 - 1.0):", min_value=0.0, max_value=1.0, step=0.1)
-
-# Button to trigger the calculation
-calculate_button = st.button("Calculate")
-
-if calculate_button:
-    TARGET = target_input.upper()
-    MUT_RATE = mutation_rate_input
 
     # Rest of the code, including the main function call
     result = main(POP_SIZE, MUT_RATE, TARGET, GENES)
