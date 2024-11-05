@@ -22,7 +22,7 @@ colors = sns.color_palette("pastel", len(cities_names))
 
 # City Icons
 city_icons = {
-    "Gliwice": "♕",
+   "Gliwice": "♕",
     "Cairo": "♖",
     "Rome": "♗",
     "Krakow": "♘",
