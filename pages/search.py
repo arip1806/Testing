@@ -8,6 +8,15 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
+import matplotlib.pyplot as plt
+from itertools import permutations, combinations
+from random import shuffle
+import numpy as np
+import statistics
+import pandas as pd
+import streamlit as st
+
+# Get user input for city names and coordinates
 num_cities = int(input("Enter the number of cities: "))
 city_names = []
 city_coords = []
@@ -18,27 +27,8 @@ for i in range(num_cities):
     y_coord = float(input(f"Enter the y-coordinate for {city_name}: "))
     city_names.append(city_name)
     city_coords.append((x_coord, y_coord))
-n_population = 250
-crossover_per = 0.8
-mutation_per = 0.2
-n_generations = 200
 
-# Pastel Pallete
-colors = sns.color_palette("pastel", len(cities_names))
-
-# City Icons
-city_icons = {
-    "Gliwice": "♕",
-    "Cairo": "♖",
-    "Rome": "♗",
-    "Krakow": "♘",
-    "Paris": "♙",
-    "Alexandria": "♔",
-    "Berlin": "♚",
-    "Tokyo": "♛",
-    "Rio": "♜",
-    "Budapest": "♝"
-}
+# ... (rest of the code remains the same)
 
 fig.set_size_inches(16, 12)
 st.pyplot(fig)
