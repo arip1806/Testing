@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 from itertools import permutations, combinations
 from random import shuffle
+import random
 import numpy as np
 import statistics
 import pandas as pd
+import seaborn as sns
 import streamlit as st
 
-# ... (rest of the code remains the same, using the user-provided city_names and city_coords)
 x = [0,3,6,7,15,10,16,5,8,1.5]
 y = [1,2,1,4.5,-1,2.5,11,6,9,12]
 cities_names = ["Gliwice", "Cairo", "Rome", "Krakow", "Paris", "Alexandria", "Berlin", "Tokyo", "Rio", "Budapest"]
