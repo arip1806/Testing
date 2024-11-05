@@ -18,25 +18,6 @@ for i in range(num_cities):
     y_coord = float(input(f"Enter the y-coordinate for {city_name}: "))
     city_names.append(city_name)
     city_coords.append((x_coord, y_coord))
-
-
-# Pastel Pallete
-colors = sns.color_palette("pastel", len(cities_names))
-
-# City Icons
-city_icons = {
-    "Gliwice": "♕",
-    "Cairo": "♖",
-    "Rome": "♗",
-    "Krakow": "♘",
-    "Paris": "♙",
-    "Alexandria": "♔",
-    "Berlin": "♚",
-    "Tokyo": "♛",
-    "Rio": "♜",
-    "Budapest": "♝"
-}
-
 fig, ax = plt.subplots()
 
 ax.grid(False)  # Grid
