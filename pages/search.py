@@ -6,8 +6,6 @@ import statistics
 import pandas as pd
 import streamlit as st
 
-
-
 # ... (rest of the code remains the same, using the user-provided city_names and city_coords)
 x = [0,3,6,7,15,10,16,5,8,1.5]
 y = [1,2,1,4.5,-1,2.5,11,6,9,12]
