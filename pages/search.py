@@ -6,17 +6,7 @@ import statistics
 import pandas as pd
 import streamlit as st
 
-# Get user input for city names and coordinates
-num_cities = int(input("Enter the number of cities: "))
-city_names = []
-city_coords = []
 
-for i in range(num_cities):
-    city_name = input(f"Enter the name of city {i+1}: ")
-    x_coord = float(input(f"Enter the x-coordinate for {city_name}: "))
-    y_coord = float(input(f"Enter the y-coordinate for {city_name}: "))
-    city_names.append(city_name)
-    city_coords.append((x_coord, y_coord))
 
 # ... (rest of the code remains the same, using the user-provided city_names and city_coords)
 x = [0,3,6,7,15,10,16,5,8,1.5]
