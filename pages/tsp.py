@@ -8,6 +8,19 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
+# Get user input for city names and coordinates
+num_cities = int(input("Enter the number of cities: "))
+city_names = []
+city_coords = []
+
+for i in range(num_cities):
+    city_name = input(f"Enter the name of city {i+1}: ")
+    x_coord = float(input(f"Enter the x-coordinate for {city_name}: "))
+    y_coord = float(input(f"Enter the y-coordinate for {city_name}: "))
+    city_names.append(city_name)
+    city_coords.append((x_coord, y_coord))
+
+
 x = [0,3,6,7,15,10,16,5,8,1.5]
 y = [1,2,1,4.5,-1,2.5,11,6,9,12]
 cities_names = ["Gliwice", "Cairo", "Rome", "Krakow", "Paris", "Alexandria", "Berlin", "Tokyo", "Rio", "Budapest"]
