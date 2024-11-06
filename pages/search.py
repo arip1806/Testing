@@ -6,7 +6,7 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
-# User input for x, y coordinates and city names
+# User inputs for coordinates and city names
 x_input = st.text_input("Enter x coordinates (comma-separated):", "0,3,6,7,15,10,16,5,8,1.5")
 y_input = st.text_input("Enter y coordinates (comma-separated):", "1,2,1,4.5,-1,2.5,11,6,9,12")
 cities_input = st.text_area("Enter city names (comma-separated):", "Gliwice, Cairo, Rome, Krakow, Paris, Alexandria, Berlin, Tokyo, Rio, Budapest")
@@ -16,17 +16,17 @@ x = list(map(float, x_input.split(',')))
 y = list(map(float, y_input.split(',')))
 cities_names = cities_input.split(',')
 
-# Ensure the inputs are valid
+# Validate that input lengths are consistent
 if len(x) != len(y) or len(x) != len(cities_names):
     st.error("The number of x coordinates, y coordinates, and city names must be the same.")
 else:
-    # Set other parameters
-    n_population = 250
-    crossover_per = 0.8
-    mutation_per = 0.2
-    n_generations = 200
+    # User inputs for GA parameters
+    n_population = st.number_input("Enter population size:", min_value=1, value=250, step=1)
+    crossover_per = st.slider("Crossover percentage:", min_value=0.0, max_value=1.0, value=0.8, step=0.01)
+    mutation_per = st.slider("Mutation percentage:", min_value=0.0, max_value=1.0, value=0.2, step=0.01)
+    n_generations = st.number_input("Number of generations:", min_value=1, value=200, step=1)
 
-    # Pastel palette
+    # Pastel color palette
     colors = sns.color_palette("pastel", len(cities_names))
 
     # City icons
@@ -43,7 +43,7 @@ else:
         "Budapest": "♝"
     }
 
-    # Create city coordinates dictionary
+    # Create dictionary for city coordinates
     city_coords = dict(zip(cities_names, zip(x, y)))
 
     # Plot city points and names
@@ -66,5 +66,6 @@ else:
     fig.set_size_inches(16, 12)
     st.pyplot(fig)
 
-    # Remaining code for TSP with genetic algorithm remains the same
+    # Code for running the TSP genetic algorithm and plotting results
+    # You can include your existing GA and plotting logic here as before
     # ...
