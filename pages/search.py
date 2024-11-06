@@ -9,14 +9,14 @@ st.title("Traveling Salesman Problem (TSP) Using Genetic Algorithm")
 
 # User Inputs for Cities and Coordinates
 st.subheader("City Coordinates Input")
-st.write("Enter up to 10 cities with their coordinates (x, y) in range 1-10.")
+st.write("Enter up to 11 cities with their coordinates (x, y) in range 1-10.")
 
 city_names = []
 x_coords = []
 y_coords = []
 
 # Input fields for each city
-for i in range(1, 11):
+for i in range(1, 12):  # Updated to allow 11 cities
     st.write(f"City {i}")
     city_name = st.text_input(f"City {i} Name", key=f"city_name_{i}")
     x_coord = st.number_input(f"x-coordinate (City {i})", min_value=1.0, max_value=10.0, step=0.1, key=f"x_coord_{i}")
