@@ -1,33 +1,107 @@
 import streamlit as st
+import matplotlib.pyplot as plt
+from itertools import permutations, combinations
+from random import shuffle
+import numpy as np
 
-st.title("City Coordinates Input")
-st.subheader("Enter up to 10 cities with their coordinates (x, y) in range 1-10.")
+def get_user_input():
+    num_cities = st.number_input("Enter the number of cities:", min_value=2, value=5)
+    cities = []
+    coords = []
+    for i in range(num_cities):
+        city_name = st.text_input(f"Enter the name of city {i+1}:")
+        x_coord = st.number_input(f"Enter the x-coordinate for {city_name}:")
+        y_coord = st.number_input(f"Enter the y-coordinate for {city_name}:")
+        cities.append(city_name)
+        coords.append((x_coord, y_coord))
+    return cities, coords
 
-# Initialize lists for city names, x coordinates, and y coordinates
-city_names = []
-x_coords = []
-y_coords = []
+def distance_between_cities(city1, city2, city_coords_dict):
+    x1, y1 = city_coords_dict[city1]
+    x2, y2 = city_coords_dict[city2]
+    return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
-# Input fields for each city
-for i in range(1, 11):
-    st.write(f"City {i}")
-    city_name = st.text_input(f"City {i} name", key=f"city_name_{i}")
-    x_coord = st.number_input(f"x-coordinate (City {i})", min_value=1.0, max_value=10.0, step=0.1, key=f"x_coord_{i}")
-    y_coord = st.number_input(f"y-coordinate (City {i})", min_value=1.0, max_value=10.0, step=0.1, key=f"y_coord_{i}")
+def total_distance(route, city_coords_dict):
+    total_distance = 0
+    num_cities = len(route)
+    for i in range(num_cities):
+        j = (i + 1) % num_cities
+        city1, city2 = route[i], route[j]
+        total_distance += distance_between_cities(city1, city2, city_coords_dict)
+    return total_distance
 
-    # Append inputs to lists
-    if city_name:
-        city_names.append(city_name)
-        x_coords.append(x_coord)
-        y_coords.append(y_coord)
+def initial_population(cities, population_size):
+    population = []
+    for _ in range(population_size):
+        random.shuffle(cities)
+        population.append(list(cities))
+    return population
 
-# Submit button
-if st.button("Submit"):
-    # Display entered data
-    st.write("City Names:", city_names)
-    st.write("X Coordinates:", x_coords)
-    st.write("Y Coordinates:", y_coords)
-    
-    # Example dictionary for further processing
-    city_coords = dict(zip(city_names, zip(x_coords, y_coords)))
-    st.write("City Coordinates Dictionary:", city_coords)
+def selection(population, fitness_scores):
+    selected_indices = np.random.choice(len(population), size=len(population), p=fitness_scores)
+    return [population[i] for i in selected_indices]
+
+def crossover(parent1, parent2):
+    crossover_point = np.random.randint(1, len(parent1) - 1)
+    child1 = parent1[:crossover_point] + parent2[crossover_point:]
+    child2 = parent2[:crossover_point] + parent1[crossover_point:]
+    return child1, child2
+
+def mutation(individual, mutation_rate):
+    if np.random.rand() < mutation_rate:
+        index1, index2 = np.random.choice(len(individual), 2, replace=False)
+        individual[index1], individual[index2] = individual[index2], individual[index1]
+    return individual
+
+def genetic_algorithm(cities, population_size=100, generations=100, crossover_rate=0.8, mutation_rate=0.05):
+    population = initial_population(cities, population_size)
+    best_distance = float('inf')
+    best_route = None
+
+    for generation in range(generations):
+        fitness_scores = [1 / total_distance(individual, city_coords_dict) for individual in population]
+        fitness_scores = fitness_scores / np.sum(fitness_scores)
+
+        new_population = []
+        for _ in range(population_size):
+            parent1, parent2 = selection(population, fitness_scores)
+            child1, child2 = crossover(parent1, parent2)
+            child1 = mutation(child1, mutation_rate)
+            child2 = mutation(child2, mutation_rate)
+            new_population.extend([child1, child2])
+
+        population = new_population
+
+        for individual in population:
+            distance = total_distance(individual, city_coords_dict)
+            if distance < best_distance:
+                best_distance = distance
+                best_route = individual
+
+    return best_route, best_distance
+
+def visualize_route(route, city_coords_dict):
+    x_coords = [city_coords_dict[city][0] for city in route]
+    y_coords = [city_coords_dict[city][1] for city in route]
+    x_coords.append(x_coords[0])
+    y_coords.append(y_coords[0])
+
+    plt.plot(x_coords, y_coords, marker='o', linestyle='-', color='blue')
+    plt.xlabel('X-coordinate')
+    plt.ylabel('Y-coordinate')
+    plt.title('Optimal Route')
+    st.pyplot(plt)
+
+def main():
+    st.title("Traveling Salesman Problem Solver")
+    cities, coords = get_user_input()
+    city_coords_dict = dict(zip(cities, coords))
+
+    best_route, best_distance = genetic_algorithm(cities, population_size=100, generations=100)
+
+    st.write("Best Route:", best_route)
+    st.write("Best Distance:", best_distance)
+    visualize_route(best_route, city_coords_dict)
+
+if __name__ == "__main__":
+    main()
