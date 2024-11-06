@@ -1,56 +1,60 @@
 import matplotlib.pyplot as plt
-from itertools import permutations
+from itertools import permutations, combinations
 from random import shuffle
 import random
 import numpy as np
+import statistics
+import pandas as pd
 import seaborn as sns
 import streamlit as st
-import pandas as pd
 
-# Original coordinates for cities
-x = [0, 3, 6, 7, 15, 10, 16, 5, 8, 1.5]
-y = [1, 2, 1, 4.5, -1, 2.5, 11, 6, 9, 12]
+x = [0,3,6,7,15,10,16,5,8,1.5]
+y = [1,2,1,4.5,-1,2.5,11,6,9,12]
 cities_names = ["Gliwice", "Cairo", "Rome", "Krakow", "Paris", "Alexandria", "Berlin", "Tokyo", "Rio", "Budapest"]
 city_coords = dict(zip(cities_names, zip(x, y)))
-
-# Streamlit title
-st.title("TSP with Genetic Algorithm - Customize City Coordinates")
-
-# Input fields for user to update coordinates
-for city in cities_names:
-    st.subheader(f"Set Coordinates for {city}")
-    new_x = st.number_input(f"X-coordinate for {city}", min_value=-20, max_value=20, value=int(city_coords[city][0]))
-    new_y = st.number_input(f"Y-coordinate for {city}", min_value=-20, max_value=20, value=int(city_coords[city][1]))
-    city_coords[city] = (new_x, new_y)
-
-# Parameters for genetic algorithm
 n_population = 250
-n_generations = 200
 crossover_per = 0.8
 mutation_per = 0.2
+n_generations = 200
 
-# Pastel colors and icons for visualization
+# Pastel Pallete
 colors = sns.color_palette("pastel", len(cities_names))
+
+# City Icons
 city_icons = {
-    "Gliwice": "♕", "Cairo": "♖", "Rome": "♗", "Krakow": "♘", "Paris": "♙",
-    "Alexandria": "♔", "Berlin": "♚", "Tokyo": "♛", "Rio": "♜", "Budapest": "♝"
+   "Gliwice": "♕",
+    "Cairo": "♖",
+    "Rome": "♗",
+    "Krakow": "♘",
+    "Paris": "♙",
+    "Alexandria": "♔",
+    "Berlin": "♚",
+    "Tokyo": "♛",
+    "Rio": "♜",
+    "Budapest": "♝"
 }
 
-# Visualization: Display cities and connections
 fig, ax = plt.subplots()
-ax.grid(False)
+
+ax.grid(False)  # Grid
+
 for i, (city, (city_x, city_y)) in enumerate(city_coords.items()):
     color = colors[i]
     icon = city_icons[city]
     ax.scatter(city_x, city_y, c=[color], s=1200, zorder=2)
     ax.annotate(icon, (city_x, city_y), fontsize=40, ha='center', va='center', zorder=3)
-    ax.annotate(city, (city_x, city_y), fontsize=12, ha='center', va='bottom', xytext=(0, -30), textcoords='offset points')
+    ax.annotate(city, (city_x, city_y), fontsize=12, ha='center', va='bottom', xytext=(0, -30),
+                textcoords='offset points')
+
+    # Connect cities with opaque lines
     for j, (other_city, (other_x, other_y)) in enumerate(city_coords.items()):
         if i != j:
             ax.plot([city_x, other_x], [city_y, other_y], color='gray', linestyle='-', linewidth=1, alpha=0.1)
+
 fig.set_size_inches(16, 12)
 st.pyplot(fig)
 
+#population
 def initial_population(cities_list, n_population = 250):
 
     """
@@ -238,7 +242,8 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
             offspring_list.append(offspring_1)
             offspring_list.append(offspring_2)
 
-mixed_offspring = parents_list + offspring_list
+
+        mixed_offspring = parents_list + offspring_list
         fitness_probs = fitness_prob(mixed_offspring)
         sorted_fitness_indices = np.argsort(fitness_probs)[::-1]
         best_fitness_indices = sorted_fitness_indices[0:int(0.8*n_population)]
@@ -255,27 +260,53 @@ mixed_offspring = parents_list + offspring_list
         random.shuffle(best_mixed_offspring)
 
     return best_mixed_offspring
-# Genetic Algorithm and TSP functions here...
-# (Add genetic algorithm functions like initial_population, dist_two_cities, etc., as in the original code)
+
+best_mixed_offspring = run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per)
+
+total_dist_all_individuals = []
+for i in range(0, n_population):
+    total_dist_all_individuals.append(total_dist_individual(best_mixed_offspring[i]))
+
+index_minimum = np.argmin(total_dist_all_individuals)
+
+minimum_distance = min(total_dist_all_individuals)
+st.write(minimum_distance)
 
 #shortest path
 # shortest_path = offspring_list[index_minimum]
+shortest_path = best_mixed_offspring[index_minimum]
+st.write(shortest_path)
 
+x_shortest = []
+y_shortest = []
+for city in shortest_path:
+    x_value, y_value = city_coords[city]
+    x_shortest.append(x_value)
+    y_shortest.append(y_value)
 
-# Find best route and plot the shortest path
-best_mixed_offspring = run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per)
-shortest_path = min(best_mixed_offspring, key=total_dist_individual)
+x_shortest.append(x_shortest[0])
+y_shortest.append(y_shortest[0])
 
-# Extract coordinates for shortest path plot
-x_shortest = [city_coords[city][0] for city in shortest_path] + [city_coords[shortest_path[0]][0]]
-y_shortest = [city_coords[city][1] for city in shortest_path] + [city_coords[shortest_path[0]][1]]
-
-# Visualization of the best route
 fig, ax = plt.subplots()
 ax.plot(x_shortest, y_shortest, '--go', label='Best Route', linewidth=2.5)
 plt.legend()
-plt.title(f"TSP Best Route Using GA (Distance: {total_dist_individual(shortest_path):.2f})", fontsize=18)
+
+for i in range(len(x)):
+    for j in range(i + 1, len(x)):
+        ax.plot([x[i], x[j]], [y[i], y[j]], 'k-', alpha=0.09, linewidth=1)
+
+plt.title(label="TSP Best Route Using GA",
+          fontsize=25,
+          color="k")
+
+str_params = '\n'+str(n_generations)+' Generations\n'+str(n_population)+' Population Size\n'+str(crossover_per)+' Crossover\n'+str(mutation_per)+' Mutation'
+plt.suptitle("Total Distance Travelled: "+
+             str(round(minimum_distance, 3)) +
+             str_params, fontsize=18, y = 1.047)
+
 for i, txt in enumerate(shortest_path):
-    ax.annotate(f"{i+1}- {txt}", (x_shortest[i], y_shortest[i]), fontsize=20)
+    ax.annotate(str(i+1)+ "- " + txt, (x_shortest[i], y_shortest[i]), fontsize= 20)
+
 fig.set_size_inches(16, 12)
+# plt.grid(color='k', linestyle='dotted')
 st.pyplot(fig)
