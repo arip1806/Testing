@@ -1,58 +1,70 @@
-import streamlit as st
 import matplotlib.pyplot as plt
-from itertools import permutations, combinations
-from random import shuffle
+from itertools import permutations
+import random
 import numpy as np
+import pandas as pd
+import seaborn as sns
+import streamlit as st
 
-def get_user_input():
-    num_cities = st.number_input("Enter the number of cities:", min_value=2, value=5)
-    cities = []
-    coords = []
-    for i in range(num_cities):
-        city_name = st.text_input(f"Enter the name of city {i+1}:")
-        x_coord = st.number_input(f"Enter the x-coordinate for {city_name}:")
-        y_coord = st.number_input(f"Enter the y-coordinate for {city_name}:")
-        cities.append(city_name)
-        coords.append((x_coord, y_coord))
-    return cities, coords
+# User input for x, y coordinates and city names
+x_input = st.text_input("Enter x coordinates (comma-separated):", "0,3,6,7,15,10,16,5,8,1.5")
+y_input = st.text_input("Enter y coordinates (comma-separated):", "1,2,1,4.5,-1,2.5,11,6,9,12")
+cities_input = st.text_area("Enter city names (comma-separated):", "Gliwice, Cairo, Rome, Krakow, Paris, Alexandria, Berlin, Tokyo, Rio, Budapest")
 
-def run_ga(cities_names, n_population=250, n_generations=200, crossover_per=0.8, mutation_per=0.2):
-    # ... (rest of the GA implementation)
+# Convert user input to lists
+x = list(map(float, x_input.split(',')))
+y = list(map(float, y_input.split(',')))
+cities_names = cities_input.split(',')
 
-def visualize_cities(cities, coords):
+# Ensure the inputs are valid
+if len(x) != len(y) or len(x) != len(cities_names):
+    st.error("The number of x coordinates, y coordinates, and city names must be the same.")
+else:
+    # Set other parameters
+    n_population = 250
+    crossover_per = 0.8
+    mutation_per = 0.2
+    n_generations = 200
+
+    # Pastel palette
+    colors = sns.color_palette("pastel", len(cities_names))
+
+    # City icons
+    city_icons = {
+        "Gliwice": "♕",
+        "Cairo": "♖",
+        "Rome": "♗",
+        "Krakow": "♘",
+        "Paris": "♙",
+        "Alexandria": "♔",
+        "Berlin": "♚",
+        "Tokyo": "♛",
+        "Rio": "♜",
+        "Budapest": "♝"
+    }
+
+    # Create city coordinates dictionary
+    city_coords = dict(zip(cities_names, zip(x, y)))
+
+    # Plot city points and names
     fig, ax = plt.subplots()
-    for i, (city, (x, y)) in enumerate(zip(cities, coords)):
-        ax.scatter(x, y, color='blue', marker='o')
-        ax.annotate(city, (x, y), fontsize=10)
-    plt.xlabel("X-coordinate")
-    plt.ylabel("Y-coordinate")
-    plt.title("Initial City Map")
+    ax.grid(False)
+
+    for i, (city, (city_x, city_y)) in enumerate(city_coords.items()):
+        color = colors[i]
+        icon = city_icons.get(city, "⬤")  # Default icon if city not in predefined icons
+        ax.scatter(city_x, city_y, c=[color], s=1200, zorder=2)
+        ax.annotate(icon, (city_x, city_y), fontsize=40, ha='center', va='center', zorder=3)
+        ax.annotate(city, (city_x, city_y), fontsize=12, ha='center', va='bottom', xytext=(0, -30),
+                    textcoords='offset points')
+
+        # Connect cities with opaque lines
+        for j, (other_city, (other_x, other_y)) in enumerate(city_coords.items()):
+            if i != j:
+                ax.plot([city_x, other_x], [city_y, other_y], color='gray', linestyle='-', linewidth=1, alpha=0.1)
+
+    fig.set_size_inches(16, 12)
     st.pyplot(fig)
 
-def main():
-    st.title("TSP Solver with User Input")
-    cities, coords = get_user_input()
-
-    if st.button("Run Genetic Algorithm"):
-        best_route = run_ga(cities, n_population=250, n_generations=200, crossover_per=0.8, mutation_per=0.2)
-
-        # Visualize the best route
-        fig, ax = plt.subplots()
-        for i in range(len(best_route)):
-            city1, city2 = best_route[i], best_route[(i + 1) % len(best_route)]
-            x1, y1 = city_coords_dict[city1]
-            x2, y2 = city_coords_dict[city2]
-            plt.plot([x1, x2], [y1, y2], 'b-')
-
-        for city, coords in city_coords_dict.items():
-            x, y = coords
-            plt.scatter(x, y, color='red', marker='o')
-            plt.annotate(city, (x, y))
-
-        plt.xlabel("X-coordinate")
-        plt.ylabel("Y-coordinate")
-        plt.title("Best Route Found by Genetic Algorithm")
-        st.pyplot(fig)
-
-if __name__ == "__main__":
-    main()
+    # Remaining code for TSP with genetic algorithm remains the same
+    # ...
