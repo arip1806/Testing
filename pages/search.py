@@ -19,68 +19,100 @@ for i in range(num_cities):
 # Create a dictionary to store city names and coordinates
 city_coords_dict = dict(zip(city_names, city_coords))
 
-def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per):
-    population = initial_population(cities_names, n_population)
-    fitness_probs = fitness_prob(population)   
+
+def initial_population(cities_list, n_population=250):
+    """
+    Generating initial population of cities randomly selected from the all possible permutations
+    of the given cities.
+    Input:
+    1- Cities list
+    2- Number of population
+    Output:
+    Generated lists of cities
+    """
+
+    population_perms = []
+    possible_perms = list(permutations(cities_list))
+    random_ids = random.sample(range(0, len(possible_perms)), n_population)
+
+    for i in random_ids:
+        population_perms.append(list(possible_perms[i]))
+
+    return population_perms
 
 
-    for generation in range(n_generations):
-        parents_list = []
-        for i in range(int(crossover_per * n_population)):
-            parents_list.append(roulette_wheel(population, fitness_probs))
+def dist_two_cities(city_1, city_2):
+    """
+    Calculates the distance between two cities based on their coordinates.
+    """
 
-        offspring_list = []
-        for i in range(0, len(parents_list), 2):
-            offspring_1, offspring_2 = crossover(parents_list[i], parents_list[i + 1])
+    city_1_coords = city_coords_dict[city_1]
+    city_2_coords = city_coords_dict[city_2]
+    return np.sqrt(np.sum((np.array(city_1_coords) - np.array(city_2_coords))**2))
 
-            # Mutation   
 
-            if random.random() < mutation_per:
-                offspring_1 = mutation(offspring_1)
-            if random.random() < mutation_per:
-                offspring_2 = mutation(offspring_2)
+def total_dist_individual(individual):
+    """
+    Calculates the total distance of a travel route represented by an individual (city permutation).
+    """
 
-            offspring_list.append(offspring_1)
-            offspring_list.append(offspring_2)
+    total_dist = 0
+    for i in range(0, len(individual)):
+        if (i == len(individual) - 1):
+            total_dist += dist_two_cities(individual[i], individual[0])
+        else:
+            total_dist += dist_two_cities(individual[i], individual[i + 1])
+    return total_dist
 
-        new_population = parents_list + offspring_list
-        fitness_probs = fitness_prob(new_population)
-        sorted_indices = np.argsort(fitness_probs)[::-1]
-        best_individuals = [new_population[i] for i in sorted_indices[:n_population]]
-        population = best_individuals
 
-    best_individual = population[0]
-    return best_individual
-# Visualize the initial city map
-fig, ax = plt.subplots()
+def fitness_prob(population):
+    """
+    Calculating the fitness probability
+    Input:
+    1- Population
+    Output:
+    Population fitness probability
+    """
 
-for i, (city, (city_x, city_y)) in enumerate(city_coords_dict.items()):
-    ax.scatter(city_x, city_y, color='blue', marker='o')
-    ax.annotate(city, (city_x, city_y), fontsize=10)
+    total_dist_all_individuals = []
+    for i in range(0, len(population)):
+        total_dist_all_individuals.append(total_dist_individual(population[i]))
 
-plt.xlabel("X-coordinate")
-plt.ylabel("Y-coordinate")
-plt.title("Initial City Map")
-plt.show()
+    max_population_cost = max(total_dist_all_individuals)
+    population_fitness = max_population_cost - total_dist_all_individuals
+    population_fitness_sum = sum(population_fitness)
+    population_fitness_probs = population_fitness / population_fitness_sum
+    return population_fitness_probs
 
-# Run the genetic algorithm
-best_route = run_ga(city_names, n_population, n_generations, crossover_per, mutation_per)
 
-# Visualize the best route
-fig, ax = plt.subplots()
+def roulette_wheel(population, fitness_probs):
+    """
+    Implement selection strategy based on roulette wheel proportionate selection.
+    Input:
+    1- population
+    2- fitness probabilities
+    Output:
+    selected individual
+    """
 
-for i in range(len(best_route)):
-    city1, city2 = best_route[i], best_route[(i + 1) % len(best_route)]
-    x1, y1 = city_coords_dict[city1]
-    x2, y2 = city_coords_dict[city2]
-    plt.plot([x1, x2], [y1, y2], 'b-')
+    population_fitness_probs_cumsum = fitness_probs.cumsum()
+    bool_prob_array = population_fitness_probs_cumsum < np.random.uniform(0, 1, 1)
+    selected_individual_index = len(bool_prob_array[bool_prob_array == True]) - 1
+    return population[selected_individual_index]
 
-for city, coords in city_coords_dict.items():
-    x, y = coords
-    plt.scatter(x, y, color='red', marker='o')
-    plt.annotate(city, (x, y))
 
-plt.xlabel("X-coordinate")
-plt.ylabel("Y-coordinate")
-plt.title("Best Route Found by Genetic Algorithm")
-plt.show()
+def crossover(parent_1, parent_2):
+    """
+    Implement mating strategy using simple crossover between 2 parents
+    Input:
+    1- parent 1
+    2- parent 2
+    Output:
+    1- offspring 1
+    2- offspring 2
+    """
+
+    n_cities_cut = len(city_names) - 1
+    cut = round(random.uniform(1, n_cities_cut))
+    offspring_1 = []
+    offspring_2
