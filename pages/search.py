@@ -18,9 +18,13 @@ def get_user_input():
 
 def update_city_data(city_coords_dict):
     for city, coords in city_coords_dict.items():
+        st.write(f"**City: {city}**")
+        new_name = st.text_input(f"New name for {city}:", value=city)
         new_x = st.number_input(f"New x-coordinate for {city}:", value=coords[0])
         new_y = st.number_input(f"New y-coordinate for {city}:", value=coords[1])
-        city_coords_dict[city] = (new_x, new_y)
+        city_coords_dict[new_name] = (new_x, new_y)
+        if new_name != city:
+            del city_coords_dict[city]
 
 def distance_between_cities(city1, city2, city_coords_dict):
     x1, y1 = city_coords_dict[city1]
