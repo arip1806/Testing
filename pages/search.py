@@ -101,7 +101,7 @@ if submit_button and len(city_coords) == len(default_city_names):
         offspring_2 = parent_2[:cut] + [city for city in parent_1 if city not in parent_2[:cut]]
         return offspring_1, offspring_2
 
-def mutation(offspring):
+    def mutation(offspring):
         index_1, index_2 = random.sample(range(len(city_coords)), 2)
         offspring[index_1], offspring[index_2] = offspring[index_2], offspring[index_1]
         return offspring
