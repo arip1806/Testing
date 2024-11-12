@@ -7,6 +7,7 @@ from numpy import e
 from numpy import pi
 from numpy import meshgrid
 from matplotlib import pyplot
+# import Axes3D to be able to create a 3D projection
 from mpl_toolkits.mplot3d import Axes3D
  
 # objective function
@@ -24,7 +25,8 @@ x, y = meshgrid(xaxis, yaxis)
 results = objective(x, y)
 # create a surface plot with the jet color scheme
 figure = pyplot.figure()
-axis = figure.gca(projection='3d')
+# use add_subplot to create a 3D subplot
+axis = figure.add_subplot(111, projection='3d') 
 axis.plot_surface(x, y, results, cmap='jet')
 # show the plot
 pyplot.show()
