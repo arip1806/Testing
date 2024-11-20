@@ -1,32 +1,42 @@
-# ackley multimodal function
-from numpy import arange
-from numpy import exp
-from numpy import sqrt
-from numpy import cos
-from numpy import e
-from numpy import pi
-from numpy import meshgrid
-from matplotlib import pyplot
-# import Axes3D to be able to create a 3D projection
-from mpl_toolkits.mplot3d import Axes3D
- 
-# objective function
-def objective(x, y):
-	return -20.0 * exp(-0.2 * sqrt(0.5 * (x**2 + y**2))) - exp(0.5 * (cos(2 * pi * x) + cos(2 * pi * y))) + e + 20
- 
-# define range for input
-r_min, r_max = -5.0, 5.0
-# sample input range uniformly at 0.1 increments
-xaxis = arange(r_min, r_max, 0.1)
-yaxis = arange(r_min, r_max, 0.1)
-# create a mesh from the axis
-x, y = meshgrid(xaxis, yaxis)
-# compute targets
-results = objective(x, y)
-# create a surface plot with the jet color scheme
-figure = pyplot.figure()
-# use add_subplot to create a 3D subplot
-axis = figure.add_subplot(111, projection='3d') 
-axis.plot_surface(x, y, results, cmap='jet')
-# show the plot
-pyplot.show()
+def rgb_fft(image):
+    f_size = 25
+    fft_images=[]
+    fft_images_log = []
+    for i in range(3):
+        rgb_fft = np.fft.fftshift(np.fft.fft2((image[:, :, i])))
+        fft_images.append(rgb_fft)
+        fft_images_log.append(np.log(abs(rgb_fft)))
+    
+    return fft_images, fft_images_log
+    
+def apply_mask(input_image, mask): 
+    _, mask_thresh = cv2.threshold(mask, 120, 255, cv2.THRESH_BINARY)
+    mask_bool = mask_thresh.astype('bool')
+    input_image[mask_bool] = 1
+    
+    return input_image 
+
+def apply_mask_all(list_images, list_mask): 
+    final_result = []
+    
+    for (i,mask) in zip(list_images, list_mask):
+        result = apply_mask(i,mask)
+        final_result.append(result)
+    return final_result
+    
+def create_canvas_draw_instance(background_image, key, height, width): 
+
+    canvas_result = st_canvas(
+        fill_color="rgba(255, 165, 0, 0)",  
+        stroke_width=stroke_width,
+        stroke_color=stroke_color,
+        background_color=bg_color,
+        background_image=Image.open(background_image),
+        update_streamlit=realtime_update,
+        drawing_mode=drawing_mode,
+        height = height, 
+        width = width,
+        key=key,
+    )
+
+    return canvas_result
