@@ -37,8 +37,6 @@ ratings = program_ratings_dict
 
 GEN = 100
 POP = 50
-#CO_R = 0.8
-#MUT_R = 0.2
 CO_R = st.number_input('Crossover Rate', min_value=0.0, max_value=0.95, value=0.8, step=0.01)
 MUT_R = st.number_input('Mutation Rate', min_value=0.01, max_value=0.05, value=0.02, step=0.01)
 EL_S = 2
@@ -155,7 +153,14 @@ genetic_schedule = genetic_algorithm(initial_best_schedule, generations=GEN, pop
 final_schedule = initial_best_schedule + genetic_schedule[:rem_t_slots]
 
 st.write("\nFinal Optimal Schedule:")
+#for time_slot, program in enumerate(final_schedule):
+    #st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
+data = []
 for time_slot, program in enumerate(final_schedule):
-    st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
+    data.append([f"Time Slot {all_time_slots[time_slot]:02d}:00", program])
 
+df = pd.DataFrame(data, columns=["Time Slot", "Program"])
+
+# Display the DataFrame as a table
+st.table(df)
 st.write("Total Ratings:", fitness_function(final_schedule))
