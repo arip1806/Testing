@@ -39,15 +39,8 @@ GEN = 100
 POP = 50
 #CO_R = 0.8
 #MUT_R = 0.2
-# Set default values and ranges
-default_crossover_rate = 0.8
-default_mutation_rate = 0.2
-
-# Create sliders for user input
-crossover_rate = st.slider("Crossover Rate", 0.0, 0.95, default_crossover_rate, step=0.01)
-mutation_rate = st.slider("Mutation Rate", 0.01, 0.05, default_mutation_rate, step=0.01)
-
-# Display the selected values
+CO_R = st.number_input('Crossover Rate', min_value=0.0, max_value=0.95, value=0.8, step=0.01)
+MUT_R = st.number_input('Mutation Rate', min_value=0.01, max_value=0.05, value=0.02, step=0.01)
 EL_S = 2
 
 all_programs = list(ratings.keys()) # all programs
