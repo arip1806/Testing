@@ -154,13 +154,10 @@ final_schedule = initial_best_schedule + genetic_schedule[:rem_t_slots]
 
 st.write("\nFinal Optimal Schedule:")
 #for time_slot, program in enumerate(final_schedule):
-    #st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
-data = []
-for time_slot, program in enumerate(final_schedule):
-    data.append([f"Time Slot {all_time_slots[time_slot]:02d}:00", program])
-
-df = pd.DataFrame(data, columns=["Time Slot", "Program"])
+#st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
+final_schedule_df = pd.DataFrame({"Time Slot": [f"{t:02d}:00" for t in all_time_slots],
+                                   "Program": final_schedule})
 
 # Display the DataFrame as a table
-st.table(df)
+st.table(final_schedule_df)
 st.write("Total Ratings:", fitness_function(final_schedule))
