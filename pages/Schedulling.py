@@ -37,8 +37,19 @@ ratings = program_ratings_dict
 
 GEN = 100
 POP = 50
-CO_R = 0.8
-MUT_R = 0.2
+#CO_R = 0.8
+#MUT_R = 0.2
+# Set default values and ranges
+default_crossover_rate = 0.8
+default_mutation_rate = 0.2
+
+# Create sliders for user input
+crossover_rate = st.slider("Crossover Rate", 0.0, 0.95, default_crossover_rate, step=0.01)
+mutation_rate = st.slider("Mutation Rate", 0.01, 0.05, default_mutation_rate, step=0.01)
+
+# Display the selected values
+st.write("Selected Crossover Rate:", crossover_rate)
+st.write("Selected Mutation Rate:", mutation_rate)
 EL_S = 2
 
 all_programs = list(ratings.keys()) # all programs
