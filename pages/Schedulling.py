@@ -38,7 +38,9 @@ ratings = program_ratings_dict
 
 GEN = 100
 POP = 50
+#set the CO_R (Crossover Rate) to the  default value 0.8 and the user can modify it.
 CO_R = st.number_input('Crossover Rate', min_value=0.0, max_value=0.95, value=0.8, step=0.01)
+#set MUT_R (Mutation Rate) to default value 0.2 and the user can modify it.
 MUT_R = st.number_input('Mutation Rate', min_value=0.01, max_value=0.05, value=0.02, step=0.01)
 EL_S = 2
 
@@ -159,6 +161,6 @@ st.write("\nFinal Optimal Schedule:")
 final_schedule_df = pd.DataFrame({"Time Slot": [f"{t:02d}:00" for t in all_time_slots],
                                    "Program": final_schedule})
 
-# Display the DataFrame as a table
+# Display the schedule in table format.
 st.table(final_schedule_df)
 st.write("Total Ratings:", fitness_function(final_schedule))
