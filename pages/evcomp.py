@@ -142,3 +142,6 @@ with st.form("my_form"):
 
     if calculate:
         main(POP_SIZE, MUT_RATE, TARGET, GENES)
+
+
+
