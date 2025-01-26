@@ -1,169 +1,166 @@
-import json
-from statistics import mean
-from OSSP import *
-from tqdm import tqdm
+import csv
+import random
+import streamlit as st
+import pandas as pd
 
-class ACO:
+# Function to read the CSV file and convert it to the desired format
+def read_csv_to_dict(file_path):
+    program_ratings = {}
     
-    def __init__(self, problem, parameters, verbose=False, save=False):
-        self.problem = problem
-        self.ALPHA = parameters['alpha']        #Exponential weight of pheromone on walk probabilities
-        self.BETA = parameters['beta']          #Exponential weight of desirability (heuristic) on walk probabilities
-        self.rho = parameters['rho']            #Pheromone evaporatio rate per cycle
-        self.tau0 = parameters['tau']           #Initial value for pheromone
-        self.n_ants = parameters['n_ants']      #Number of ants walking in a cycle
-        self.num_gen = parameters['num_gen']    #Number of cycle
-        self.w_ib=self.rho * parameters['w_ib'] #Reward to iteration best -> exploration
-        self.w_bs=self.rho * parameters['w_bs'] #Reward to best so far -> exploitation
-        self.n_tasks = problem.get_dim()
-        self.verbose = verbose
-        self.save = save
-        self.num_machines = problem.get_num_machines()
-
-
-    def initialize(self):
-        '''
-        Initialize pheromone table and ants data.
-        At the beginning all the value for pheromone are eguals -> the ants choose only following heuristic value (teta).
-        Pheromone has no contribute in the ants decision.
-        '''
-        self.phero = np.ones((self.n_tasks+1, self.n_tasks)) * self.tau0
-        self.best_so_far = None
-        self.bs_cost = 1e300 #very large value
-        self.sol = [None] * self.n_ants
-        self.sol_cost = np.zeros(self.n_ants)
-
-
-    def run(self,seed=0):
-        """
-        Method responsible to create and execute all ants through the enviroment and update the pheromones.
-
-        returns:
-            - Print the best time.
-            - Generate a file with the 
-                time results of all cycles with this structure:
-                {cycle : [Fastest, Mean, Longest], ...}
-        """
-        results_control = {}
-        np.random.seed(seed)
-        self.initialize()
-        for gen in tqdm(range(1,self.num_gen+1)):
-
-            this_cycle_times = [] #
-
-            for ant_num in range(0, self.n_ants):
-                self.sol[ant_num] = self.generate_solution()
-
-                path_time, _ = self.problem.objective_function(self.sol[ant_num])
-                this_cycle_times.append(path_time)
-
-            self.evaluate_solutions(gen)
-            self.update_pheromone()
-
-            if self.save:
-                #save recorded values
-                results_control.update({gen : [min(this_cycle_times), mean(this_cycle_times), max(this_cycle_times)]})
+    with open(file_path, mode='r', newline='') as file:
+        reader = csv.reader(file)
+        # Skip the header
+        header = next(reader)
         
-        if self.save:
-            #generating file with fitness through cycles
-            json.dump( results_control, open("results/ACO_cycles_results.json", 'w' ))
-
-        return self.best_so_far, self.bs_cost
-
-
-    def generate_solution(self):
-        """
-        The ant walks on every node of the graph without reapeating any.
-
-        returns:
-            array with task followed in order
-        """
-        sol = []
-        task_to_process = list(range(self.n_tasks))
-        current_task = self.n_tasks # a non existing task, it means that it must choose the first task to process
-        for i in range(self.n_tasks):
-            next_task = self.select_task(current_task, task_to_process)
-            sol.append(next_task)
-            current_task = next_task
-            task_to_process.remove(next_task)
-            
-        return sol
-
-
-    def select_task(self, current_task, task_to_process):
-        """
-        With the not visited node probabilities chooses (using roulette wheel) the next node to visit.
-
-        returns:
-            next_node
-        """
-        num_task_to_process = len(task_to_process) #num task remaining to process
-        prob = np.zeros(num_task_to_process)
-        for i in range(0, num_task_to_process):
-            task = task_to_process[i]
-            tau = self.phero[current_task][task] #pheromone value
-            teta = 1 if current_task == self.n_tasks else 1/self.problem.data[task // self.num_machines][task % self.num_machines] #heuristic value
-            p_i_to_j = tau**self.ALPHA * teta**self.BETA #Probability of choosing task j as next task in solution path
-            prob[i] = p_i_to_j
-        
-        #Normalize probabilities to sum 1 for numpy randon choice method
-        den = sum(prob)
-        normalized_probabilities = prob/den
-        indexs = [ i for i in range(len(normalized_probabilities))]
-        next_node_index = np.random.choice(indexs, p=normalized_probabilities) #Roulette Wheel method
-        return task_to_process[next_node_index]
+        for row in reader:
+            program = row[0]
+            ratings = [float(x) for x in row[1:]]  # Convert the ratings to floats
+            program_ratings[program] = ratings
     
+    return program_ratings
 
-    def evaporate(self):
-        self.phero = (1-self.rho)*self.phero
+# Path to the CSV file
+file_path = 'content/JSSP_dataset.csv'
 
+# Get the data in the required format
+program_ratings_dict = read_csv_to_dict(file_path)
 
-    def evaluate_solutions(self, gen):
-        '''
-        Evaluate solution, find the iteration best and if necessary replace the best so far.
-        '''
-        for i in range(0,self.n_ants):
-            self.sol_cost[i], _ = self.problem.objective_function(self.sol[i]) #Save solution cost for each ant
-        self.ibest = self.sol_cost.argmin() #Take best solution (minimum cost) for the ants colony
-        if self.sol_cost[self.ibest] < self.bs_cost: #If the iteration best is better than best so far replace the solution
-            self.bs_cost = self.sol_cost[self.ibest]
-            self.best_so_far = self.sol[self.ibest]
-            if self.verbose == True:
-                print("new best {} at gen. {}".format(self.bs_cost, gen))
+# Print the result (you can also return or process it further)
+for program, ratings in program_ratings_dict.items():
+   st.write(f"'{program}': {ratings},")
 
 
-    def update_pheromone(self):
-        '''
-        Evaporate pheromone and give reward.
-        The update does not exist in nature.
+import random
 
-        rewards (s, k): # reward based on solution s
-            for all ci, cj appearing in s
-                tau_ij <- tau_ij + K / Ls
-        
-        where Ls is the cost of the solution s.
-        There are 3 possibilities:
-            1. reward (s_bs, w_bs)
-            2. reward (s_ib, w_ib)
-            3. reward (s_bs, w_bs)
-               reward (s_ib, w_ib)
-        
-        w_bs and w_ib are problem-dependent weights and need to be calibrated. 
-        There are also variants in which not only one solution is awarded but for example also the second best etc ...
-        '''
-        self.evaporate()
-        #self.reward(self.best_so_far, self.w_bs/self.bbs_cost)
-        #self.reward(self.sol[self.ibest], self.w_ib/self.sol_cost[self.ibest])
-        self.reward(self.best_so_far, self.w_bs)
-        self.reward(self.sol[self.ibest], self.w_ib)
+##################################### DEFINING PARAMETERS AND DATASET ################################################################
+# Sample rating programs dataset for each time slot.
+ratings = program_ratings_dict
+
+GEN = 100
+POP = 50
+#set the CO_R (Crossover Rate) to the  default value 0.8 and the user can modify it.
+CO_R = st.number_input('Crossover Rate', min_value=0.0, max_value=0.95, value=0.8, step=0.01)
+#set MUT_R (Mutation Rate) to default value 0.2 and the user can modify it.
+MUT_R = st.number_input('Mutation Rate', min_value=0.01, max_value=0.05, value=0.02, step=0.01)
+EL_S = 2
+
+all_programs = list(ratings.keys()) # all programs
+all_time_slots = list(range(6, 24)) # time slots
+
+######################################### DEFINING FUNCTIONS ########################################################################
+# defining fitness function
+def fitness_function(schedule):
+    total_rating = 0
+    for time_slot, program in enumerate(schedule):
+        total_rating += ratings[program][time_slot]
+    return total_rating
+
+# initializing the population
+def initialize_pop(programs, time_slots):
+    if not programs:
+        return [[]]
+
+    all_schedules = []
+    for i in range(len(programs)):
+        for schedule in initialize_pop(programs[:i] + programs[i + 1:], time_slots):
+            all_schedules.append([programs[i]] + schedule)
+
+    return all_schedules
+
+# selection
+def finding_best_schedule(all_schedules):
+    best_schedule = []
+    max_ratings = 0
+
+    for schedule in all_schedules:
+        total_ratings = fitness_function(schedule)
+        if total_ratings > max_ratings:
+            max_ratings = total_ratings
+            best_schedule = schedule
+
+    return best_schedule
+
+# calling the pop func.
+all_possible_schedules = initialize_pop(all_programs, all_time_slots)
+
+# callin the schedule func.
+best_schedule = finding_best_schedule(all_possible_schedules)
 
 
-    def reward(self, sol, delta):
-        '''
-        Give a small reward to each couple c_i c_j, that appear in good solution (iteration best and/or best so far).
-        '''
-        current = self.n_tasks
-        for i in range(self.n_tasks):
-            task = sol[i]
-            self.phero[current][task] += delta
-            current = task
+############################################# GENETIC ALGORITHM #############################################################################
+
+# Crossover
+def crossover(schedule1, schedule2):
+    crossover_point = random.randint(1, len(schedule1) - 2)
+    child1 = schedule1[:crossover_point] + schedule2[crossover_point:]
+    child2 = schedule2[:crossover_point] + schedule1[crossover_point:]
+    return child1, child2
+
+# mutating
+def mutate(schedule):
+    mutation_point = random.randint(0, len(schedule) - 1)
+    new_program = random.choice(all_programs)
+    schedule[mutation_point] = new_program
+    return schedule
+
+# calling the fitness func.
+def evaluate_fitness(schedule):
+    return fitness_function(schedule)
+
+# genetic algorithms with parameters
+
+
+
+def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, crossover_rate=CO_R, mutation_rate=MUT_R, elitism_size=EL_S):
+
+    population = [initial_schedule]
+
+    for _ in range(population_size - 1):
+        random_schedule = initial_schedule.copy()
+        random.shuffle(random_schedule)
+        population.append(random_schedule)
+
+    for generation in range(generations):
+        new_population = []
+
+        # Elitsm
+        population.sort(key=lambda schedule: fitness_function(schedule), reverse=True)
+        new_population.extend(population[:elitism_size])
+
+        while len(new_population) < population_size:
+            parent1, parent2 = random.choices(population, k=2)
+            if random.random() < crossover_rate:
+                child1, child2 = crossover(parent1, parent2)
+            else:
+                child1, child2 = parent1.copy(), parent2.copy()
+
+            if random.random() < mutation_rate:
+                child1 = mutate(child1)
+            if random.random() < mutation_rate:
+                child2 = mutate(child2)
+
+            new_population.extend([child1, child2])
+
+        population = new_population
+
+    return population[0]
+
+##################################################### RESULTS ###################################################################################
+
+# brute force
+initial_best_schedule = finding_best_schedule(all_possible_schedules)
+
+rem_t_slots = len(all_time_slots) - len(initial_best_schedule)
+genetic_schedule = genetic_algorithm(initial_best_schedule, generations=GEN, population_size=POP, elitism_size=EL_S)
+
+final_schedule = initial_best_schedule + genetic_schedule[:rem_t_slots]
+
+st.write("\nFinal Optimal Schedule:")
+#for time_slot, program in enumerate(final_schedule):
+#st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
+final_schedule_df = pd.DataFrame({"Time Slot": [f"{t:02d}:00" for t in all_time_slots],
+                                   "Program": final_schedule})
+
+# Display the schedule in table format.
+st.table(final_schedule_df)
+st.write("Total Ratings:", fitness_function(final_schedule))
