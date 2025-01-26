@@ -18,11 +18,16 @@ def construct_solution(pheromones, heuristic, num_operations, alpha, beta):
         probabilities = []
         for i in range(num_operations):
             if i not in visited:
-                prob = (pheromones[i] ** alpha) * (heuristic[i] ** beta)
+                prob = (pheromones[i].sum() ** alpha) * (heuristic[i].sum() ** beta)
                 probabilities.append(prob)
             else:
                 probabilities.append(0)
-        probabilities = np.array(probabilities) / np.sum(probabilities)
+        
+        probabilities = np.array(probabilities)
+        if probabilities.sum() > 0:
+            probabilities /= probabilities.sum()
+        else:
+            probabilities = np.ones(num_operations) / num_operations
 
         next_operation = np.random.choice(range(num_operations), p=probabilities)
         solution.append(next_operation)
