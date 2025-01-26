@@ -1,132 +1,111 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import random
 
-# Title and Description
-st.title("Job Shop Scheduling with ACO")
-st.markdown("""
-This application demonstrates the Ant Colony Optimization (ACO) algorithm applied to the job shop scheduling problem (JSSP).
-""")
+# Ant Colony Optimization for JSSP
+def initialize_pheromone(num_operations):
+    return np.ones((num_operations, num_operations))
 
-# Data Upload Section
-uploaded_file = st.file_uploader("Upload JSSP Data (CSV)", type="csv")
+def heuristic_matrix(processing_times):
+    return 1 / (processing_times + 1e-6)  # Avoid division by zero
 
-# Input Parameters (Enabled only if data is uploaded)
-num_jobs = None
-num_machines = None
-iterations = None
-alpha = None
-beta = None
-processing_times = None
+def construct_solution(pheromones, heuristic, num_operations, alpha, beta):
+    solution = []
+    visited = set()
 
-if uploaded_file is not None:
-    # Read data from uploaded CSV file
-    df = pd.read_csv(uploaded_file)
-    num_jobs = df.shape[0]
-    num_machines = df.shape[1]
-    processing_times = df.to_numpy()
+    for _ in range(num_operations):
+        probabilities = []
+        for i in range(num_operations):
+            if i not in visited:
+                prob = (pheromones[i] ** alpha) * (heuristic[i] ** beta)
+                probabilities.append(prob)
+            else:
+                probabilities.append(0)
+        probabilities = np.array(probabilities) / np.sum(probabilities)
 
-    # Input parameters are enabled only if data is uploaded successfully
-    iterations = st.slider("Number of Iterations", min_value=10, max_value=500, value=100)
-    alpha = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0)
-    beta = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0)
+        next_operation = np.random.choice(range(num_operations), p=probabilities)
+        solution.append(next_operation)
+        visited.add(next_operation)
 
-# Solve JSSP with ACO (using the imported data)
-def solve_jssp_aco(num_jobs, num_machines, processing_times, iterations, alpha, beta):
-    """
-    Solves the JSSP using ACO with the provided data.
+    return solution
 
-    Args:
-        num_jobs: Number of jobs.
-        num_machines: Number of machines.
-        processing_times: A 3D array representing processing times for each job on each machine.
-            Shape: (jobs, machines, operations)
-        iterations: Number of iterations for the ACO algorithm.
-        alpha: Importance of pheromone trails.
-        beta: Importance of heuristic information.
+def evaluate_solution(solution, job_data):
+    machine_end_times = {}
+    job_end_times = {}
 
-    Returns:
-        A list containing the best makespan found in each iteration.
-    """
-    # Initialize pheromone matrix
-    pheromone_matrix = np.ones((num_jobs, num_machines))
+    for operation in solution:
+        job, machine, time = job_data[operation]
 
-    # ACO parameters
-    num_ants = 10  # Adjust as needed
-    rho = 0.1
+        start_time = max(job_end_times.get(job, 0), machine_end_times.get(machine, 0))
+        end_time = start_time + time
 
-    best_makespan_history = []
+        job_end_times[job] = end_time
+        machine_end_times[machine] = end_time
 
-    for it in range(iterations):
-        # Generate ant solutions
-        solutions = []
-        for _ in range(num_ants):
-            solution = []
-            for job in range(num_jobs):
-                available_machines = list(range(num_machines))
-                job_sequence = []
-                for operation in range(num_machines):
-                    probabilities = []
-                    for machine in available_machines:
-                        pheromone = pheromone_matrix[job][machine] ** alpha
-                        heuristic = 1 / (processing_times[job][machine][operation] + 1e-6)
-                        probabilities.append(pheromone * heuristic ** beta)
-                    probabilities = np.array(probabilities) / np.sum(probabilities)
-                    selected_machine = np.random.choice(available_machines, p=probabilities)
-                    job_sequence.append(selected_machine)
-                    available_machines.remove(selected_machine)
-                solution.append(job_sequence)
-            solutions.append(solution)
+    return max(job_end_times.values())
 
-        # Calculate makespans
-        makespans = [calculate_makespan(solution, processing_times) for solution in solutions]
-        best_index = np.argmin(makespans)
-        best_makespan = makespans[best_index]
-        best_solution = solutions[best_index]
+def update_pheromones(pheromones, solutions, makespans, evaporation_rate):
+    pheromones *= (1 - evaporation_rate)
 
-        # Update pheromone trails
-        pheromone_matrix *= (1 - rho)
-        for job in range(num_jobs):
-            for machine in range(num_machines):
-                if machine == best_solution[job][machine]:
-                    pheromone_matrix[job][machine] += 1.0
+    for solution, makespan in zip(solutions, makespans):
+        for i in range(len(solution) - 1):
+            pheromones[solution[i], solution[i+1]] += 1 / makespan
 
-        best_makespan_history.append(best_makespan)
+    return pheromones
 
-    return best_makespan_history
+# Streamlit App
+def main():
+    st.title("Ant Colony Optimization for Job Shop Scheduling Problem")
 
-def calculate_makespan(solution, processing_times):
-    """
-    Calculates the makespan of a given schedule.
-    """
-    machine_loads = [0] * processing_times.shape[1]
-    for job in range(processing_times.shape[0]):
-        for machine in range(processing_times.shape[1]):
-            operation_index = solution[job][machine]
-            machine_loads[machine] += processing_times[job][machine][operation_index]
-    return max(machine_loads)
+    # Upload JSSP Dataset
+    uploaded_file = st.file_uploader("Upload a JSSP dataset (CSV format)", type=["csv"])
 
-# Optimization (run ACO only if data is uploaded)
-if uploaded_file is not None:
-  if st.button("Run ACO"):
-    best_makespan_history = solve_jssp_aco(num_jobs, num_machines, processing_times, iterations, alpha, beta)
+    if uploaded_file:
+        job_data = pd.read_csv(uploaded_file).values  # Assuming columns: Job, Machine, Time
+        num_operations = len(job_data)
 
-    # Plot Convergence
-    st.subheader("Convergence Plot")
-    fig, ax = plt.subplots()
-    ax.plot(best_makespan_history, label="Best Makespan")
-    ax.set_xlabel("Iteration")
-    ax.set_ylabel("Makespan")
-    ax.legend()
-    st.pyplot(fig)
+        st.write("Uploaded Dataset:")
+        st.write(pd.DataFrame(job_data, columns=["Job", "Machine", "Time"]))
 
-    # Display Results Table
-    st.subheader("Results Table")
-    results_df = pd.DataFrame({'Iteration': range(1, iterations + 1), 'Best Makespan': best_makespan_history})
-    st.table(results_df)
+        # ACO Parameters
+        alpha = st.slider("Pheromone Importance (Alpha):", 0.1, 5.0, 1.0)
+        beta = st.slider("Heuristic Importance (Beta):", 0.1, 5.0, 2.0)
+        evaporation_rate = st.slider("Pheromone Evaporation Rate:", 0.01, 1.0, 0.1)
+        num_ants = st.slider("Number of Ants:", 1, 100, 10)
+        num_iterations = st.slider("Number of Iterations:", 1, 500, 100)
 
-    # Display Best Makespan
-    st.subheader("Best Makespan")
-    st.write(f"The best makespan found: {min(best_makespan_history)}") 
+        # Run ACO
+        if st.button("Run ACO"):
+            pheromones = initialize_pheromone(num_operations)
+            heuristic = heuristic_matrix(job_data[:, 2])
 
+            best_solution = None
+            best_makespan = float('inf')
+
+            for iteration in range(num_iterations):
+                solutions = []
+                makespans = []
+
+                for _ in range(num_ants):
+                    solution = construct_solution(pheromones, heuristic, num_operations, alpha, beta)
+                    makespan = evaluate_solution(solution, job_data)
+
+                    solutions.append(solution)
+                    makespans.append(makespan)
+
+                    if makespan < best_makespan:
+                        best_solution = solution
+                        best_makespan = makespan
+
+                pheromones = update_pheromones(pheromones, solutions, makespans, evaporation_rate)
+
+                st.write(f"Iteration {iteration + 1}: Best Makespan = {best_makespan}")
+
+            # Display Results
+            st.subheader("Best Solution")
+            st.write("Operation Sequence:", best_solution)
+            st.write("Makespan:", best_makespan)
+
+if __name__ == "__main__":
+    main()
