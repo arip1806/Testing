@@ -1,166 +1,113 @@
-import csv
-import random
-import streamlit as st
-import pandas as pd
-
-# Function to read the CSV file and convert it to the desired format
-def read_csv_to_dict(file_path):
-    JSSP_dataset = {}
-    
-    with open(file_path, mode='r', newline='') as file:
-        reader = csv.reader(file)
-        # Skip the header
-        header = next(reader)
-        
-        for row in reader:
-            machine = row[2]
-            makespan = [float(x) for x in row[8:]]  # Convert the ratings to floats
-            makespan[machine] = makespan
-    
-    return JSSP_dataset
-
-# Path to the CSV file
-file_path = 'content/JSSP_dataset.csv'
-
-# Get the data in the required format
-JSSP_dataset_dict = read_csv_to_dict(file_path)
-
-# Print the result (you can also return or process it further)
-for machine, makespan in JSSP_dataset.items():
-   st.write(f"'{machine}': {makespan},")
-
-
 import random
 
-##################################### DEFINING PARAMETERS AND DATASET ################################################################
-# Sample rating programs dataset for each time slot.
-makespan = JSSP_dataset_dict
+class JobShopSchedulingACO:
 
-GEN = 100
-POP = 50
-#set the CO_R (Crossover Rate) to the  default value 0.8 and the user can modify it.
-CO_R = st.number_input('Crossover Rate', min_value=0.0, max_value=0.95, value=0.8, step=0.01)
-#set MUT_R (Mutation Rate) to default value 0.2 and the user can modify it.
-MUT_R = st.number_input('Mutation Rate', min_value=0.01, max_value=0.05, value=0.02, step=0.01)
-EL_S = 2
+    def __init__(self, jobs, machines, processing_times, num_ants=10, max_iter=100, alpha=1.0, beta=2.0, rho=0.1):
+        """
+        Initializes the ACO algorithm for job shop scheduling.
 
-all_machine = list(maksepan.keys()) # all programs
-makespan = list(range(6, 24)) # time slots
+        Args:
+            jobs: Number of jobs.
+            machines: Number of machines.
+            processing_times: A 3D array representing processing times for each job on each machine.
+                Shape: (jobs, machines, operations)
+            num_ants: Number of ants in the colony.
+            max_iter: Maximum number of iterations.
+            alpha: Importance of pheromone trails.
+            beta: Importance of heuristic information.
+            rho: Evaporation rate of pheromone trails.
+        """
+        self.jobs = jobs
+        self.machines = machines
+        self.processing_times = processing_times
+        self.num_ants = num_ants
+        self.max_iter = max_iter
+        self.alpha = alpha
+        self.beta = beta
+        self.rho = rho
+        self.pheromone_matrix = np.ones((jobs, machines))  # Initialize pheromone matrix
 
-######################################### DEFINING FUNCTIONS ########################################################################
-# defining fitness function
-def fitness_function(schedule):
-    total_makespan = 0
-    for completion_time, machine in enumerate(schedule):
-        total_makespan += makespan[machine][completion_time]
-    return total_makespan
+    def calculate_makespan(self, solution):
+        """
+        Calculates the makespan of a given schedule.
 
-# initializing the population
-def initialize_pop(machine, completion_time):
-    if not macchine:
-        return [[]]
+        Args:
+            solution: A 2D array representing the schedule, where 
+                     solution[job_index][machine_index] = operation_index
 
-    all_schedules = []
-    for i in range(len(machine)):
-        for schedule in initialize_pop(machine[:i] + machine[i + 1:], completion_time):
-            all_schedules.append([machine[i]] + schedule)
+        Returns:
+            The makespan of the schedule.
+        """
+        machine_loads = [0] * self.machines
+        for job in range(self.jobs):
+            for machine in range(self.machines):
+                operation_index = solution[job][machine]
+                machine_loads[machine] += self.processing_times[job][machine][operation_index]
+        return max(machine_loads)
 
-    return all_schedules
+    def construct_solution(self):
+        """
+        Constructs a solution (schedule) for one ant.
+        """
+        solution = []
+        for job in range(self.jobs):
+            available_machines = list(range(self.machines))
+            job_sequence = []
+            for operation in range(self.machines):
+                probabilities = []
+                for machine in available_machines:
+                    pheromone = self.pheromone_matrix[job][machine] ** self.alpha
+                    heuristic = 1 / (self.processing_times[job][machine][operation] + 1e-6)  # Avoid division by zero
+                    probabilities.append(pheromone * heuristic ** self.beta)
+                probabilities = np.array(probabilities) / np.sum(probabilities)
+                selected_machine = np.random.choice(available_machines, p=probabilities)
+                job_sequence.append(selected_machine)
+                available_machines.remove(selected_machine)
+            solution.append(job_sequence)
+        return solution
 
-# selection
-def finding_best_schedule(all_schedules):
-    best_schedule = []
-    max_ratings = 0
+    def update_pheromone_trails(self, best_solution):
+        """
+        Updates the pheromone trails based on the best solution.
+        """
+        for job in range(self.jobs):
+            for machine in range(self.machines):
+                self.pheromone_matrix[job][machine] *= (1 - self.rho)  # Evaporate pheromone
+                if machine == best_solution[job][machine]:
+                    self.pheromone_matrix[job][machine] += 1.0  # Deposit pheromone on the best path
 
-    for schedule in all_schedules:
-        total_makespan = fitness_function(schedule)
-        if total_makespan > max_makespan:
-            max_makespan = total_makespan
-            best_schedule = schedule
+    def run(self):
+        """
+        Runs the ACO algorithm for job shop scheduling.
+        """
+        best_makespan = float('inf')
+        best_solution = None
 
-    return best_schedule
+        for iteration in range(self.max_iter):
+            solutions = [self.construct_solution() for _ in range(self.num_ants)]
+            makespans = [self.calculate_makespan(solution) for solution in solutions]
+            best_index = np.argmin(makespans)
+            best_solution_current = solutions[best_index]
+            best_makespan_current = makespans[best_index]
 
-# calling the pop func.
-all_possible_schedules = initialize_pop(all_machine, all_completion_time)
+            if best_makespan_current < best_makespan:
+                best_makespan = best_makespan_current
+                best_solution = best_solution_current
 
-# callin the schedule func.
-best_schedule = finding_best_schedule(all_possible_schedules)
+            self.update_pheromone_trails(best_solution)
 
+            print(f"Iteration: {iteration+1}, Best Makespan: {best_makespan}")
 
-############################################# GENETIC ALGORITHM #############################################################################
+        return best_solution, best_makespan
 
-# Crossover
-def crossover(schedule1, schedule2):
-    crossover_point = random.randint(1, len(schedule1) - 2)
-    child1 = schedule1[:crossover_point] + schedule2[crossover_point:]
-    child2 = schedule2[:crossover_point] + schedule1[crossover_point:]
-    return child1, child2
+# Example usage (replace with your actual job shop data)
+jobs = 3
+machines = 3
+processing_times = np.random.randint(1, 10, size=(jobs, machines, machines))  # Example processing times
 
-# mutating
-def mutate(schedule):
-    mutation_point = random.randint(0, len(schedule) - 1)
-    new_program = random.choice(all_programs)
-    schedule[mutation_point] = new_program
-    return schedule
+aco = JobShopSchedulingACO(jobs, machines, processing_times)
+best_solution, best_makespan = aco.run()
 
-# calling the fitness func.
-def evaluate_fitness(schedule):
-    return fitness_function(schedule)
-
-# genetic algorithms with parameters
-
-
-
-def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, crossover_rate=CO_R, mutation_rate=MUT_R, elitism_size=EL_S):
-
-    population = [initial_schedule]
-
-    for _ in range(population_size - 1):
-        random_schedule = initial_schedule.copy()
-        random.shuffle(random_schedule)
-        population.append(random_schedule)
-
-    for generation in range(generations):
-        new_population = []
-
-        # Elitsm
-        population.sort(key=lambda schedule: fitness_function(schedule), reverse=True)
-        new_population.extend(population[:elitism_size])
-
-        while len(new_population) < population_size:
-            parent1, parent2 = random.choices(population, k=2)
-            if random.random() < crossover_rate:
-                child1, child2 = crossover(parent1, parent2)
-            else:
-                child1, child2 = parent1.copy(), parent2.copy()
-
-            if random.random() < mutation_rate:
-                child1 = mutate(child1)
-            if random.random() < mutation_rate:
-                child2 = mutate(child2)
-
-            new_population.extend([child1, child2])
-
-        population = new_population
-
-    return population[0]
-
-##################################################### RESULTS ###################################################################################
-
-# brute force
-initial_best_schedule = finding_best_schedule(all_possible_schedules)
-
-rem_t_slots = len(all_time_slots) - len(initial_best_schedule)
-genetic_schedule = genetic_algorithm(initial_best_schedule, generations=GEN, population_size=POP, elitism_size=EL_S)
-
-final_schedule = initial_best_schedule + genetic_schedule[:rem_t_slots]
-
-st.write("\nFinal Optimal Schedule:")
-#for time_slot, program in enumerate(final_schedule):
-#st.write(f"Time Slot {all_time_slots[time_slot]:02d}:00 - Program {program}")
-final_schedule_df = pd.DataFrame({"Makespan": [f"{t:02d}:00" for t in all_completion_time],
-                                   "Machine": final_schedule})
-
-# Display the schedule in table format.
-st.table(final_schedule_df)
-st.write("Total Ratings:", fitness_function(final_schedule))
+st.write("Best Solution:")
+st.write(best_solution)
+st.write("Best Makespan:", best_makespan)
