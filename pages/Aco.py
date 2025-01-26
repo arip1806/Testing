@@ -62,11 +62,13 @@ def main():
     uploaded_file = st.file_uploader("Upload a JSSP dataset (CSV format)", type=["csv"])
 
     if uploaded_file:
-        job_data = pd.read_csv(uploaded_file).values  # Assuming columns: Job, Machine, Time
+        job_data_df = pd.read_csv(uploaded_file)
+        # Extract necessary data: Job ID, Machine ID, Processing Time
+        job_data = job_data_df[["Job ID", "Machine ID", "Processing Time"]].values
         num_operations = len(job_data)
 
         st.write("Uploaded Dataset:")
-        st.write(pd.DataFrame(job_data, columns=["Job", "Machine", "Time"]))
+        st.write(job_data_df)
 
         # ACO Parameters
         alpha = st.slider("Pheromone Importance (Alpha):", 0.1, 5.0, 1.0)
@@ -78,7 +80,7 @@ def main():
         # Run ACO
         if st.button("Run ACO"):
             pheromones = initialize_pheromone(num_operations)
-            heuristic = heuristic_matrix(job_data[:, 2])
+            heuristic = heuristic_matrix(job_data[:, 2].astype(float))
 
             best_solution = None
             best_makespan = float('inf')
