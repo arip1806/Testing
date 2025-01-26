@@ -40,8 +40,6 @@ def evaluate_solution(solution, job_data):
     machine_end_times = {}
     job_end_times = {}
 
-    gantt_chart_data = []
-
     for operation in solution:
         job, machine, time = job_data[operation]
 
@@ -51,10 +49,8 @@ def evaluate_solution(solution, job_data):
         job_end_times[job] = end_time
         machine_end_times[machine] = end_time
 
-        gantt_chart_data.append((job, machine, start_time, end_time))
-
     makespan = max(job_end_times.values())
-    return makespan, gantt_chart_data
+    return makespan
 
 def update_pheromones(pheromones, solutions, makespans, evaporation_rate):
     pheromones *= (1 - evaporation_rate)
@@ -65,17 +61,16 @@ def update_pheromones(pheromones, solutions, makespans, evaporation_rate):
 
     return pheromones
 
-def plot_gantt_chart(gantt_chart_data):
+def plot_makespan_evolution(iteration_makespans):
+    # Create the line plot for makespan evolution
     fig, ax = plt.subplots(figsize=(10, 6))
-    for job, machine, start, end in gantt_chart_data:
-        ax.barh(machine, end - start, left=start, edgecolor='black', label=f"Job {job}")
-    
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Machine")
-    ax.set_title("Gantt Chart for Best Solution")
-    ax.invert_yaxis()
-    plt.legend(loc="upper right")
+    ax.plot(range(1, len(iteration_makespans) + 1), iteration_makespans, marker='o', color='blue')
+    ax.set_title("Makespan Over Iterations")
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Makespan")
+    ax.grid(True)
     plt.tight_layout()
+
     return fig
 
 # Streamlit App
@@ -108,7 +103,7 @@ def main():
 
             best_solution = None
             best_makespan = float('inf')
-            best_gantt_chart_data = []
+            iteration_makespans = []
 
             for iteration in range(num_iterations):
                 solutions = []
@@ -116,7 +111,7 @@ def main():
 
                 for _ in range(num_ants):
                     solution = construct_solution(pheromones, heuristic, num_operations, alpha, beta)
-                    makespan, gantt_chart_data = evaluate_solution(solution, job_data)
+                    makespan = evaluate_solution(solution, job_data)
 
                     solutions.append(solution)
                     makespans.append(makespan)
@@ -124,9 +119,9 @@ def main():
                     if makespan < best_makespan:
                         best_solution = solution
                         best_makespan = makespan
-                        best_gantt_chart_data = gantt_chart_data
 
                 pheromones = update_pheromones(pheromones, solutions, makespans, evaporation_rate)
+                iteration_makespans.append(best_makespan)
 
                 st.write(f"Iteration {iteration + 1}: Best Makespan = {best_makespan}")
 
@@ -135,10 +130,10 @@ def main():
             st.write("Operation Sequence:", best_solution)
             st.write("Makespan:", best_makespan)
 
-            # Plot Gantt Chart
-            st.subheader("Gantt Chart")
-            gantt_chart_fig = plot_gantt_chart(best_gantt_chart_data)
-            st.pyplot(gantt_chart_fig)
+            # Plot Makespan Evolution
+            st.subheader("Makespan Evolution")
+            makespan_fig = plot_makespan_evolution(iteration_makespans)
+            st.pyplot(makespan_fig)
 
 if __name__ == "__main__":
     main()
