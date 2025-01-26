@@ -70,3 +70,12 @@ if uploaded_file is not None:
     ax.legend()
     st.pyplot(fig)
 
+# Display Results Table
+    st.subheader("Results Table")
+    results_df = pd.DataFrame({'Iteration': range(1, iterations + 1), 'Best Makespan': best_makespan_history})
+    st.table(results_df)
+
+    # Display Best Makespan
+    st.subheader("Best Makespan")
+    st.write(f"The best makespan found: {min(best_makespan_history)}") 
+
